@@ -1,23 +1,38 @@
 import { Socket } from 'socket.io'
+import TicketControl from '../models/tickets'
 import {
   ClientToServerEvents,
-  InterServerEvents,
-  ServerToClientEvents,
-  SocketData
+  ServerToClientEvents
 } from '../interfaces/socket'
 
-type SocketOptions = Socket<
-  ClientToServerEvents,
-  ServerToClientEvents,
-  InterServerEvents,
-  SocketData
->
+type SocketOptions = Socket<ClientToServerEvents, ServerToClientEvents>
+
+const ticketControl = new TicketControl()
 
 export const socketsControllers = (socket: SocketOptions) => {
-  socket.on('disconnect', () => console.log('client disconnected'))
+  socket.emit('actual-tickets', ticketControl.toJson)
 
-  socket.on('client-emit', (payload: SocketData, callback) => {
-    callback(123)
-    socket.broadcast.emit('server-emit', payload)
+  socket.on('create-ticket', (_payload, callback) => {
+    const ticket = ticketControl.nextTicket()
+    callback(ticket)
+    socket.broadcast.emit('actual-tickets', ticketControl.toJson)
+  })
+
+  socket.on('check-ticket', (payload, callback) => {
+    if (!payload || isNaN(+payload)) {
+      callback({
+        ok: false,
+        ticket: null,
+        err: 'El número de escritorio es obligatorio'
+      })
+    }
+    const ticket = ticketControl.checkTicket(payload)
+    if (ticket) {
+      callback({ ok: true, ticket: ticket.ticketNumber })
+      socket.emit('actual-tickets', ticketControl.toJson)
+      socket.broadcast.emit('actual-tickets', ticketControl.toJson)
+    } else {
+      callback({ ok: false, ticket: null })
+    }
   })
 }

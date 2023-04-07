@@ -1,17 +1,35 @@
 export interface ServerToClientEvents {
-  'server-emit': (payload: SocketData) => void
+  'actual-tickets': (dataTickets: TicketModel) => void
 }
 
 export interface ClientToServerEvents {
-  'client-emit': (payload: SocketData, callback: (e: number) => void) => void
+  'create-ticket': (
+    payload: null,
+    callback: (numberTicket: number) => void
+  ) => void
+
+  'check-ticket': (
+    desk: string,
+    callback: ({
+      ok,
+      ticket,
+      err
+    }: {
+      ok: boolean
+      ticket: number | null
+      err?: string
+    }) => void
+  ) => void
+}
+export interface TicketModel {
+  lastTicket: number
+  dateToday?: number
+  tickets: Ticket[]
+  last4Tickets: Ticket[]
 }
 
-export interface InterServerEvents {
-  ping: () => void
-}
-
-export interface SocketData {
-  id: string
-  date: number
-  msg: string
+export interface Ticket {
+  ticketNumber: number
+  desk: string | null
+  err?: string
 }

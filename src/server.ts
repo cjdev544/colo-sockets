@@ -6,12 +6,7 @@ import dotenv from 'dotenv'
 import cors from 'cors'
 import morgan from 'morgan'
 import { socketsControllers } from './sockets/controllers'
-import {
-  ClientToServerEvents,
-  InterServerEvents,
-  ServerToClientEvents,
-  SocketData
-} from './interfaces/socket'
+import { ClientToServerEvents, ServerToClientEvents } from './interfaces/socket'
 dotenv.config()
 
 export const upServer = () => {
@@ -26,12 +21,7 @@ export const upServer = () => {
 
   // Create socket server
   const server = createServer(app)
-  const io = new Server<
-    ClientToServerEvents,
-    ServerToClientEvents,
-    InterServerEvents,
-    SocketData
-  >(server)
+  const io = new Server<ClientToServerEvents, ServerToClientEvents>(server)
 
   // Listen for connections
   //io.on('connect', socketsControllers)
